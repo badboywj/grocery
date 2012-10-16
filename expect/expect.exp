@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+
+set force_conservative 0  ;# set to 1 to force conservative mode even if
+                          ;# script wasn't run conservatively originally
+if {$force_conservative} {
+        set send_slow {1 .1}
+        proc send {ignore arg} {
+                sleep .1
+                exp_send -s -- $arg
+        }
+}
+
+set timeout 5  #5秒超时。若你网络差就改大。嗯，是的，越大就越慢。
+spawn ssh [lindex $argv 0]@[lindex $argv 1] -p22
+match_max 100000
+expect -exact "(yes/no)?"
+send -- "yes\r"
+expect -exact "assword:"
+send -- "[lindex $argv 2]\r"
+expect -exact "$"
+send -- "passwd\r"
+expect -exact "assword:"
+send -- "[lindex $argv 2]\r"
+expect -exact "New password:"
+send -- "[lindex $argv 3]\r"
+expect -exact "Retype new password:"
+send -- "[lindex $argv 3]\r"
+expect -exact "$"
+send -- "exit\r"
